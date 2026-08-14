@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Weather Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700&amp;family=Sora:wght@500;600&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "background": "#0b1326",
+                        "on-surface-variant": "#bec8d2",
+                        "on-surface": "#dae2fd",
+                        "primary": "#89ceff",
+                        "primary-container": "#0ea5e9",
+                        "on-primary-container": "#003751",
+                    },
+                    fontFamily: {
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-md": ["Sora"],
+                        "body-md": ["Hanken Grotesk"],
+                        "label-caps": ["Hanken Grotesk"],
+                        "headline-lg": ["Sora"],
+                        "display-hero": ["Sora"],
+                        "stat-value": ["Sora"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+           
+            background-image: url('screen.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            margin: 0;
+            min-height: 100vh;
+        }
+        
+        .glass-panel {
+           
+            background: rgba(11, 19, 38, 0.35);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        
+        .glass-glow-hover:hover {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 20px rgba(137, 206, 255, 0.3);
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+        
+        .text-glow { text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+        .icon-glow { filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.6)); }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .material-symbols-outlined.filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+
+        
+        .number-pop {
+            color: #ffffff !important;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.85);
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="text-on-surface flex flex-col md:flex-row h-screen overflow-hidden">
+    
+    <!-- Sidebar -->
+    <nav class="hidden lg:flex fixed left-0 top-0 h-full w-64 flex-col p-6 bg-surface/5 backdrop-blur-2xl rounded-r-2xl my-4 border-r border-white/10 shadow-2xl z-20">
+        <div class="mb-10">
+            <h1 class="text-headline-md font-headline-md text-primary tracking-tight">SkyCast Pro</h1>
+            <p class="text-label-caps font-label-caps text-on-surface-variant mt-1">Premium Plan</p>
+        </div>
+        <ul class="flex flex-col gap-2 flex-grow">
+            <li>
+                <a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary-container rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-95 duration-200" href="#">
+                    <span class="material-symbols-outlined filled text-[24px]">dashboard</span>
+                    <span class="text-label-caps font-label-caps">Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/10 rounded-xl transition-all active:scale-95 duration-200" href="#">
+                    <span class="material-symbols-outlined text-[24px]">map</span>
+                    <span class="text-label-caps font-label-caps">Map</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col lg:ml-64 relative z-10 h-full overflow-y-auto overflow-x-hidden">
+        
+        <!-- Header & Search -->
+        <header class="bg-surface/10 backdrop-blur-xl rounded-xl mt-4 mx-4 border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] flex justify-between items-center px-6 py-4 max-w-7xl mx-auto sticky top-4 z-30 w-[calc(100%-2rem)]">
+            <div class="flex items-center gap-2 text-headline-md font-headline-md font-semibold text-on-surface lg:hidden">
+                Weather Dashboard
+            </div>
+            <div class="flex-1 flex justify-end items-center gap-4">
+                <div class="relative w-full max-w-md hidden md:block">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+                    <input id="search-input" class="w-full bg-black/30 border border-white/20 rounded-full py-2.5 pl-12 pr-4 text-body-md font-body-md text-white placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all backdrop-blur-md shadow-inner" placeholder="Search city..." type="text"/>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-[40px] max-w-7xl mx-auto w-full flex-1 flex flex-col xl:flex-row gap-[24px] pb-24">
+            
+            <!-- Left Column -->
+            <div class="flex-1 flex flex-col gap-[24px] min-w-[60%]">
+                <section class="glass-panel rounded-[2rem] p-[32px] flex flex-col md:flex-row items-center justify-between relative overflow-hidden min-h-[320px]">
+                    <div class="flex flex-col z-10 w-full md:w-1/2">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-primary">location_on</span>
+                            <h2 id="city-name" class="text-headline-md font-headline-md tracking-wide font-bold">--</h2>
+                        </div>
+                        <div class="mt-4">
+                            <h1 id="current-temp" class="text-display-hero font-display-hero text-glow">--°<span class="text-headline-lg font-headline-lg align-top ml-1 text-on-surface-variant">C</span></h1>
+                        </div>
+                        <p id="current-condition" class="text-body-lg font-body-lg text-primary mt-2 font-medium">--</p>
+                        <div class="flex gap-4 mt-8">
+                            <div class="bg-black/30 rounded-full px-4 py-2 flex items-center gap-2 backdrop-blur-sm border border-white/10 shadow-md">
+                                <span class="material-symbols-outlined text-sm text-on-surface-variant">arrow_upward</span>
+                                <span id="high-temp" class="text-label-caps font-label-caps number-pop">H: --°</span>
+                            </div>
+                            <div class="bg-black/30 rounded-full px-4 py-2 flex items-center gap-2 backdrop-blur-sm border border-white/10 shadow-md">
+                                <span class="material-symbols-outlined text-sm text-on-surface-variant">arrow_downward</span>
+                                <span id="low-temp" class="text-label-caps font-label-caps number-pop">L: --°</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="z-10 w-full md:w-1/2 flex justify-center md:justify-end mt-8 md:mt-0 relative">
+                        <div class="relative w-48 h-48 flex items-center justify-center">
+                            <div class="absolute inset-0 bg-yellow-500/40 rounded-full blur-3xl animate-pulse"></div>
+                            <span id="main-icon" class="material-symbols-outlined filled text-[120px] text-white/90 z-10 icon-glow">light_mode</span>
+                        </div>
+                    </div>
+                </section>
+
+                
+                <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="glass-panel rounded-2xl p-6 flex flex-col gap-3 glass-glow-hover">
+                        <div class="flex items-center gap-2 text-on-surface-variant">
+                            <span class="material-symbols-outlined text-[20px]">water_drop</span>
+                            <span class="text-label-caps font-label-caps">Humidity</span>
+                        </div>
+                        <div id="humidity" class="text-stat-value font-stat-value number-pop text-2xl">--%</div>
+                    </div>
+                    <div class="glass-panel rounded-2xl p-6 flex flex-col gap-3 glass-glow-hover">
+                        <div class="flex items-center gap-2 text-on-surface-variant">
+                            <span class="material-symbols-outlined text-[20px]">air</span>
+                            <span class="text-label-caps font-label-caps">Wind</span>
+                        </div>
+                        <div id="wind" class="text-stat-value font-stat-value number-pop text-2xl">--</div>
+                    </div>
+                    <div class="glass-panel rounded-2xl p-6 flex flex-col gap-3 glass-glow-hover">
+                        <div class="flex items-center gap-2 text-on-surface-variant">
+                            <span class="material-symbols-outlined text-[20px]">device_thermostat</span>
+                            <span class="text-label-caps font-label-caps">Feels Like</span>
+                        </div>
+                        <div id="feels-like" class="text-stat-value font-stat-value number-pop text-2xl">--°</div>
+                    </div>
+                    <div class="glass-panel rounded-2xl p-6 flex flex-col gap-3 glass-glow-hover">
+                        <div class="flex items-center gap-2 text-on-surface-variant">
+                            <span class="material-symbols-outlined text-[20px]">compress</span>
+                            <span class="text-label-caps font-label-caps">Pressure</span>
+                        </div>
+                        <div id="pressure" class="text-stat-value font-stat-value number-pop text-2xl">--</div>
+                    </div>
+                </section>
+
+                
+                <section class="glass-panel rounded-[2rem] p-6 mt-4">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-headline-md font-headline-md font-bold">Today</h3>
+                    </div>
+                    <div id="hourly-forecast" class="flex gap-4 overflow-x-auto pb-4 snap-x hide-scrollbar" style="scrollbar-width: none;">
+                    </div>
+                </section>
+            </div>
+
+            
+            <div class="w-full xl:w-80 flex flex-col gap-[24px]">
+                <section class="glass-panel rounded-[2rem] p-6 h-full flex flex-col">
+                    <div class="flex items-center gap-2 mb-6 text-on-surface-variant border-b border-white/10 pb-4">
+                        <span class="material-symbols-outlined">calendar_month</span>
+                        <h3 class="text-headline-md font-headline-md text-on-surface font-bold">5-Day Forecast</h3>
+                    </div>
+                    <div id="daily-forecast" class="flex flex-col gap-4 flex-1 justify-around">
+                    </div>
+                </section>
+            </div>
+            
+        </div>
+    </main>
+    <script src="app.js"></script>
+</body>
+</html>
